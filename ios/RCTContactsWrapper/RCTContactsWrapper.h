@@ -8,7 +8,6 @@
 
 #import "RCTBridgeModule.h"
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 @import Contacts;
 @import ContactsUI;
 @import AddressBook;
@@ -16,7 +15,6 @@
 
 @interface RCTContactsWrapper : NSObject <RCTBridgeModule, CNContactPickerDelegate, ABPeoplePickerNavigationControllerDelegate>
 
-#endif
 
 
 
