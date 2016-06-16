@@ -7,12 +7,15 @@
 //
 
 #import "RCTContactsWrapper.h"
+@interface RCTContactsWrapper()
+
+@property(nonatomic, retain) RCTPromiseResolveBlock _resolve;
+@property(nonatomic, retain) RCTPromiseRejectBlock _reject;
+@end
 
 
 @implementation RCTContactsWrapper
 
-RCTPromiseResolveBlock _resolve;
-RCTPromiseRejectBlock _reject;
 
 
 RCT_EXPORT_MODULE(ContactsWrapper);
@@ -20,8 +23,8 @@ RCT_EXPORT_MODULE(ContactsWrapper);
 
 RCT_EXPORT_METHOD(getEmail:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
   {
-    _resolve = resolve;
-    _reject = reject;
+    self._resolve = resolve;
+    self._reject = reject;
     UIViewController *picker;
     if([CNContactPickerViewController class]) {
       picker = [[CNContactPickerViewController alloc] init];
@@ -41,15 +44,15 @@ RCT_EXPORT_METHOD(getEmail:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseR
 #pragma mark - Event handlers
 
 - (void)pickerCancelled {
-  _reject(@"E_CONTACT_CANCELLED", @"Cancelled", nil);
+  self._reject(@"E_CONTACT_CANCELLED", @"Cancelled", nil);
 }
 
 - (void)pickerNoEmail {
-  _reject(@"E_CONTACT_NO_EMAIL", @"No email found for contact", nil);
+  self._reject(@"E_CONTACT_NO_EMAIL", @"No email found for contact", nil);
 }
 
 -(void)emailPicked:(NSString *)email {
-  _resolve(email);
+  self._resolve(email);
 }
 
 
