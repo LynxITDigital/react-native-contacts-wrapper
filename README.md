@@ -1,6 +1,5 @@
 # react-native-contacts-wrapper
 
-## Introduction
 This is a simple wrapper for the native iOS and Android Contact Picker UIs.  When calling the API functions, the appropriate picker is launched.  If a contact is picked, the promise is resolved with the requested data about the picked contact.
 
 This uses the ContactsContract API for Android, AddressBook library for iOS8 and below and the new Contacts library for ios9+.
