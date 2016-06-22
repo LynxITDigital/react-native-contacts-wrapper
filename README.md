@@ -10,7 +10,18 @@ Feel free to extend the functionality so it's more useful for everyone - all PRs
 
 ## Installation
 
-### Android
+### Automatic
+
+If you have rnpm installed, all you need to do is
+
+```
+npm install react-native-contacts-wrapper --save
+rnpm link react-native-contacts-wrapper
+```
+
+### Manual
+
+#### Android
 in `settings.gradle`
 
 ```
@@ -38,7 +49,7 @@ protected List<ReactPackage> getPackages() {
 ```
 
 
-### iOS
+#### iOS
 
 1. Open your xCode project
 2. Click project name in project navigator
