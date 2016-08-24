@@ -189,4 +189,8 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                 return;
         }
     }
+
+    public void onNewIntent(Intent intent) {
+
+    }
 }
