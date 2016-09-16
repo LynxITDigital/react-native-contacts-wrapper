@@ -76,6 +76,9 @@ protected List<ReactPackage> getPackages() {
 Methods should be called from React Native as any other promise.
 
 ###Example
+
+An example project can be found in this repo: https://github.com/LynxITDigital/react-native-contacts-wrapper-example/tree/master
+
 ```
 import ContactsWrapper from 'react-native-contacts-wrapper';
 ...
