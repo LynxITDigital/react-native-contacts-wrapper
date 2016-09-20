@@ -12,7 +12,7 @@ Feel free to extend the functionality so it's more useful for everyone - all PRs
 
 ## Installation
 
-### Automatic
+### Automatic (works for iOS without condition; for Android with RN 0.28 and before)
 
 If you have rnpm installed, all you need to do is
 
@@ -23,31 +23,44 @@ rnpm link react-native-contacts-wrapper
 
 ### Manual
 
-#### Android
+#### Android (with RN 0.29 and above)
 in `settings.gradle`
 
 ```
-include ':react-native-custom-module'
-project(':react-native-custom-module').projectDir = new File(settingsDir, '../node_modules/react-native-custom-module/android/')
+include ':react-native-contacts-wrapper'
+project(':react-native-contacts-wrapper').projectDir = new File(settingsDir, '../node_modules/react-native-contacts-wrapper/android/app’)
 ```
 
-in `build.gradle`
+in `android/app/build.gradle`
 
 ```
-compile project(':react-native-contacts-wrapper')
+dependencies {
+    compile project(':react-native-contacts-wrapper')
 ```
 
-in `Main.java`
+in `MainApplication.java`
 add package to getPacakges()
+
 ```
+import com.lynxit.contactswrapper.ContactsWrapperPackage;
+...
+
 @Override
 protected List<ReactPackage> getPackages() {
     return Arrays.<ReactPackage>asList(
         new MainReactPackage(),
-        ….
+        ...,
        new ContactsWrapperPackage()
    );
 }
+```
+
+in `AndroidManifest.xml`
+make sure you have the following setting even if you have done `react-native upgrade`
+```
+<application
+     android:name=".MainApplication"
+
 ```
 
 
@@ -62,7 +75,7 @@ protected List<ReactPackage> getPackages() {
 7. Find and add your new project’s .xcodeproj file from node_modules
 8. This will now appear in project explorer, drag in under the Libraries group.
 9. In same screen, click + again, you should now see the .a file for you project, Add this
-10. Clean and Rebould your Xcode project
+10. Clean and Rebuild your Xcode project
 
 
 ##API
@@ -74,6 +87,7 @@ protected List<ReactPackage> getPackages() {
 ##Usage
 
 Methods should be called from React Native as any other promise.
+Prevent methods from being called multiple times (on Android).
 
 ###Example
 
@@ -82,13 +96,17 @@ An example project can be found in this repo: https://github.com/LynxITDigital/r
 ```
 import ContactsWrapper from 'react-native-contacts-wrapper';
 ...
-ContactsWrapper.getEmail()
-        .then((email) => {
-        console.log("email is", email);
-      })
-      .catch((error) => {
-        console.log("ERROR CODE: ", error.code);
-        console.log("ERROR MESSAGE: ", error.message);
+if (!this.importingContactInfo) {
+  this.importingContactInfo = true;
+
+  ContactsWrapper.getEmail()
+  .then((email) => {
+    this.importingContactInfo = false;
+    console.log("email is", email);
+    })
+    .catch((error) => {
+      this.importingContactInfo = false;
+      console.log("ERROR CODE: ", error.code);
+      console.log("ERROR MESSAGE: ", error.message);
       });
 ```
-
