@@ -79,7 +79,10 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
     
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent intent) {
-        
+
+        if(mContactsPromise == null){
+          return;
+        }
         
         String email = null;
         switch (resultCode) {
