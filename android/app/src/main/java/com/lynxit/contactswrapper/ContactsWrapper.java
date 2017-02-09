@@ -104,7 +104,8 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                             String id = null;
                             int idx;
                             WritableMap contactData = Arguments.createMap();
-                            Cursor cursor = mCtx.getContentResolver().query(contactUri, null, null, null, null);
+                            Cursor cursor = getReactApplicationContext().getContentResolver().query(contactUri, null, null, null, null);
+                            // Cursor cursor = mCtx.getContentResolver().query(contactUri, null, null, null, null);
                             if (cursor.moveToFirst()) {
                                 idx = cursor.getColumnIndex(ContactsContract.Contacts._ID);
                                 id = cursor.getString(idx);
