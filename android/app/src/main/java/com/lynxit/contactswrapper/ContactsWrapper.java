@@ -1,11 +1,13 @@
 package com.lynxit.contactswrapper;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.util.Log;
 
 import java.net.URI;
 import java.util.*;
@@ -32,16 +34,35 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
 
     private static final int CONTACT_REQUEST = 1;
     private static final int EMAIL_REQUEST = 2;
-    private static final String E_CONTACT_CANCELLED = "E_CONTACT_CANCELLED";
-    private static final String E_CONTACT_NO_DATA = "E_CONTACT_NO_DATA";
-    private static final String E_CONTACT_NO_EMAIL = "E_CONTACT_NO_EMAIL";
-    private static final String E_CONTACT_EXCEPTION = "E_CONTACT_EXCEPTION";
+    public static final String E_CONTACT_CANCELLED = "E_CONTACT_CANCELLED";
+    public static final String E_CONTACT_NO_DATA = "E_CONTACT_NO_DATA";
+    public static final String E_CONTACT_NO_EMAIL = "E_CONTACT_NO_EMAIL";
+    public static final String E_CONTACT_EXCEPTION = "E_CONTACT_EXCEPTION";
+    public static final String E_CONTACT_PERMISSION = "E_CONTACT_PERMISSION";
     private Promise mContactsPromise;
     private Activity mCtx;
+    private final ContentResolver contentResolver;
+    private static final List<String> JUST_ME_PROJECTION = new ArrayList<String>() {{
+        add(ContactsContract.Contacts.Data.MIMETYPE);
+        add(ContactsContract.Profile.DISPLAY_NAME);
+        add(ContactsContract.CommonDataKinds.Contactables.PHOTO_URI);
+        add(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME);
+        add(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME);
+        add(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME);
+        add(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME);
+        add(ContactsContract.CommonDataKinds.Phone.NUMBER);
+        add(ContactsContract.CommonDataKinds.Phone.TYPE);
+        add(ContactsContract.CommonDataKinds.Phone.LABEL);
+        add(ContactsContract.CommonDataKinds.Email.DATA);
+        add(ContactsContract.CommonDataKinds.Email.ADDRESS);
+        add(ContactsContract.CommonDataKinds.Email.TYPE);
+        add(ContactsContract.CommonDataKinds.Email.LABEL);
+    }};
 
 
     public ContactsWrapper(ReactApplicationContext reactContext) {
         super(reactContext);
+        this.contentResolver = getReactApplicationContext().getContentResolver();
         reactContext.addActivityEventListener(this);
     }
 
@@ -68,12 +89,19 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
      * @param requestCode - request code to specify what contact data to return
      */
     private void launchPicker(Promise contactsPromise, int requestCode) {
-        mContactsPromise = contactsPromise;
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-        mCtx = getCurrentActivity();
-        if (intent.resolveActivity(mCtx.getPackageManager()) != null) {
-            mCtx.startActivityForResult(intent, requestCode);
+//        this.contentResolver.query(Uri.parse("content://com.android.contacts/contacts/lookup/0r3-A7416BA07AEA92F2/3"), null, null, null, null);
+        Cursor cursor = this.contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        if (cursor != null) {
+            mContactsPromise = contactsPromise;
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+            mCtx = getCurrentActivity();
+            if (intent.resolveActivity(mCtx.getPackageManager()) != null) {
+                mCtx.startActivityForResult(intent, requestCode);
+            }
+            cursor.close();
+        }else{
+            mContactsPromise.reject(E_CONTACT_PERMISSION, "no permission");
         }
     }
 
@@ -94,25 +122,19 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                         try {
                             /* Retrieve all possible data about contact and return as a JS object */
 
-                            /* Map Any contact data we want returned to the JS object key for React Native */
-                            HashMap<String, String> returnKeys = new HashMap<String, String>();
-                            returnKeys.put(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, "name");
-                            returnKeys.put(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, "phone");
-                            returnKeys.put(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE, "email");
-
                             //First get ID
                             String id = null;
                             int idx;
                             WritableMap contactData = Arguments.createMap();
-                            Cursor cursor = getReactApplicationContext().getContentResolver().query(contactUri, null, null, null, null);
-                            // Cursor cursor = mCtx.getContentResolver().query(contactUri, null, null, null, null);
-                            if (cursor.moveToFirst()) {
+                            Cursor cursor = this.contentResolver.query(contactUri, null, null, null, null);
+                            if (cursor != null && cursor.moveToFirst()) {
                                 idx = cursor.getColumnIndex(ContactsContract.Contacts._ID);
                                 id = cursor.getString(idx);
                             } else {
                                 mContactsPromise.reject(E_CONTACT_NO_DATA, "Contact Data Not Found");
                                 return;
                             }
+
 
                             // Build the Entity URI.
                             Uri.Builder b = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, id).buildUpon();
@@ -125,10 +147,17 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                                 ContactsContract.Contacts.Entity.DATA1
                             };
                             String sortOrder = ContactsContract.Contacts.Entity.RAW_CONTACT_ID + " ASC";
-                            cursor = mCtx.getContentResolver().query(contactUri, projection, null, null, sortOrder);
+                            cursor = this.contentResolver.query(contactUri, projection, null, null, sortOrder);
+                            if(cursor == null)  return;
 
                             String mime;
                             boolean foundData = false;
+                            /* Map Any contact data we want returned to the JS object key for React Native */
+                            HashMap<String, String> returnKeys = new HashMap<String, String>();
+                            returnKeys.put(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE, "name");
+                            returnKeys.put(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE, "phone");
+                            returnKeys.put(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE, "email");
+
                             int dataIdx = cursor.getColumnIndex(ContactsContract.Contacts.Entity.DATA1);
                             int mimeIdx = cursor.getColumnIndex(ContactsContract.Contacts.Entity.MIMETYPE);
                             if (cursor.moveToFirst()) {
@@ -141,6 +170,7 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
                                 } while (cursor.moveToNext());
                             }
 
+                            cursor.close();
                             if(foundData) {
                                 mContactsPromise.resolve(contactData);
                                 return;
