@@ -28,7 +28,7 @@ in `settings.gradle`
 
 ```
 include ':react-native-contacts-wrapper'
-project(':react-native-contacts-wrapper').projectDir = new File(settingsDir, '../node_modules/react-native-contacts-wrapper/android/app’)
+project(':react-native-contacts-wrapper').projectDir = new File(settingsDir, '../node_modules/react-native-contacts-wrapper/android/app')
 ```
 
 in `android/app/build.gradle`
