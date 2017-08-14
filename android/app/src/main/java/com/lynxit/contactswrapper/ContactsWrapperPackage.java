@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class ContactsWrapperPackage implements ReactPackage {
 
-    @Override
+    // Deprecated in React Native 0.47
     public List<Class<? extends JavaScriptModule>> createJSModules() {
         return Collections.emptyList();
     }
