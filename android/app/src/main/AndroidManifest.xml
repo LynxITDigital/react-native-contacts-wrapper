@@ -3,7 +3,7 @@
     android:versionCode="1"
     android:versionName="1.0">
 
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--<uses-permission android:name="android.permission.READ_CONTACTS" />permission-->
 
 
 </manifest>
