@@ -63,6 +63,12 @@ make sure you have the following setting even if you have done `react-native upg
 
 ```
 
+Also add 
+
+```
+<uses-permission android:name="android.permission.READ_CONTACTS" />
+```
+
 
 #### iOS
 
